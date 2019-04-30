@@ -1,6 +1,5 @@
-var fs = require('fs');
-
-function fetchUpdateInfo(callback) {
+function fetchUpdateInfo(context, callback) {
+  var fs = context.require('fs');
   var updateInfo = {
     releaseDate: 0,
     podUpdateDate: 0,
@@ -18,14 +17,15 @@ function fetchUpdateInfo(callback) {
   });
 }
 
-function writeUpdateInfo(updateInfo, callback) {  
+function writeUpdateInfo(context, updateInfo, callback) {
+  var fs = context.require('fs');
   fs.writeFile('platforms/ios/.intercom_update', JSON.stringify(updateInfo), 'utf8', function (err,data) {
     callback();
   });
 }
 
-function updateIntercomIfNeeded(updateInfo, callback) {
-  var exec = require('child_process').exec;
+function updateIntercomIfNeeded(context, updateInfo, callback) {
+  var exec = context.require('child_process').exec;
   var completion = function() {
     writeUpdateInfo(updateInfo, function() {
       callback();
@@ -46,9 +46,8 @@ function updateIntercomIfNeeded(updateInfo, callback) {
   }
 }
 
-function fetchLatestRelease(callback) {
-  var https = require('https');
-
+function fetchLatestRelease(context, callback) {
+  var https = context.require('https');
   var req = https.get({
     headers: {
       accept: 'application/json',
@@ -76,9 +75,9 @@ function fetchLatestRelease(callback) {
   });
 }
 
-module.exports = function() {
-  var q = require('q');
-  var deferral = new q.defer();
+module.exports = function(context) {
+  var Q = context.require('q');
+  var deferral = new Q.defer();
 
   fetchUpdateInfo(function(updateInfo) {
     // Check at most once every 48 hours
