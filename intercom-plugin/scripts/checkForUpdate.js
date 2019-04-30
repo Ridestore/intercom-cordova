@@ -1,6 +1,5 @@
 function fetchUpdateInfo(context, callback) {
   var fs = context.require('fs');
-
   var updateInfo = {
     releaseDate: 0,
     podUpdateDate: 0,
@@ -27,9 +26,8 @@ function writeUpdateInfo(context, updateInfo, callback) {
 
 function updateIntercomIfNeeded(context, updateInfo, callback) {
   var exec = context.require('child_process').exec;
-
   var completion = function() {
-    writeUpdateInfo(context, updateInfo, function() {
+    writeUpdateInfo(updateInfo, function() {
       callback();
     });
   };
@@ -50,7 +48,6 @@ function updateIntercomIfNeeded(context, updateInfo, callback) {
 
 function fetchLatestRelease(context, callback) {
   var https = context.require('https');
-
   var req = https.get({
     headers: {
       accept: 'application/json',
@@ -82,10 +79,10 @@ module.exports = function(context) {
   var Q = context.require('q');
   var deferral = new Q.defer();
 
-  fetchUpdateInfo(context, function(updateInfo) {
+  fetchUpdateInfo(function(updateInfo) {
     // Check at most once every 48 hours
     if (Date.now() - updateInfo.lastCheckDate > 1000 * 60 * 60 * 48) {
-      fetchLatestRelease(context, function(releaseData) {
+      fetchLatestRelease(function(releaseData) {
         updateInfo.lastCheckDate = Date.now();
 
         if (releaseData != null) {
@@ -95,7 +92,7 @@ module.exports = function(context) {
           updateInfo.releaseDate = Date.now();
         }
 
-        updateIntercomIfNeeded(context, updateInfo, function() {
+        updateIntercomIfNeeded(updateInfo, function() {
           deferral.resolve();
         });
       });
